@@ -1,0 +1,291 @@
+"""
+Melody Generator for FL Studio Piano Roll
+
+Reads settings from:
+Documents\\Image-Line\\FL Studio\\Settings\\MelodyReroll.ini
+
+The script is intentionally silent: the AHK hotkey launches the FL script and
+presses Enter automatically on the tiny script dialog, so Alt+R feels instant.
+"""
+
+import os
+import random
+import flpianoroll as flp
+
+
+TONICS = {
+    "C": 0,
+    "C#": 1,
+    "D": 2,
+    "D#": 3,
+    "E": 4,
+    "F": 5,
+    "F#": 6,
+    "G": 7,
+    "G#": 8,
+    "A": 9,
+    "A#": 10,
+    "B": 11,
+}
+
+SCALES = {
+    "Major": [0, 2, 4, 5, 7, 9, 11],
+    "Natural Minor": [0, 2, 3, 5, 7, 8, 10],
+    "Minor Pentatonic": [0, 3, 5, 7, 10],
+    "Major Pentatonic": [0, 2, 4, 7, 9],
+    "Dorian": [0, 2, 3, 5, 7, 9, 10],
+}
+
+NOTE_STEPS = {
+    "1/2": 2.0,   # half note in quarter-note units
+    "1/4": 1.0,
+    "1/8": 0.5,
+    "1/16": 0.25,
+    "1/32": 0.125,
+}
+
+
+def get_config_path():
+    return os.path.join(
+        os.path.expanduser("~"),
+        "Documents",
+        "Image-Line",
+        "FL Studio",
+        "Settings",
+        "MelodyReroll.ini",
+    )
+
+
+def read_settings():
+    """Read the small settings file without configparser.
+
+    FL Studio's embedded Python environment can throw a low-level FileIO error
+    while configparser.read() opens an external INI. A tiny line parser is more
+    reliable here and is all we need for these simple key/value settings.
+    """
+    defaults = {
+        "root": "C#",
+        "scale": "Natural Minor",
+        "note_length": "1/8",
+        "bars": "4",
+        "density": "0.78",
+        "bass": "1",
+        "bass_color": "1",
+        "slide_chance": "0.0",
+        "seed_mode": "random",
+    }
+
+    values = dict(defaults)
+    path = get_config_path()
+
+    try:
+        with open(path, "r") as f:
+            in_melody = False
+            for raw in f:
+                line = raw.strip()
+                if not line or line.startswith(";") or line.startswith("#"):
+                    continue
+                if line.startswith("[") and line.endswith("]"):
+                    in_melody = (line[1:-1].strip().lower() == "melody")
+                    continue
+                if not in_melody or "=" not in line:
+                    continue
+                key, value = line.split("=", 1)
+                key = key.strip().lower()
+                if key in values:
+                    values[key] = value.strip()
+    except Exception:
+        pass
+
+    def get_str(name, default):
+        value = values.get(name, default)
+        return str(value).strip()
+
+    def get_int(name, default):
+        try:
+            return int(float(values.get(name, str(default))))
+        except Exception:
+            return default
+
+    def get_float(name, default):
+        try:
+            return float(values.get(name, str(default)))
+        except Exception:
+            return default
+
+    def get_bool(name, default):
+        raw = str(values.get(name, "1" if default else "0")).strip().lower()
+        return raw in ("1", "true", "yes", "on")
+
+    root = get_str("root", "C#")
+    scale = get_str("scale", "Natural Minor")
+    note_len = get_str("note_length", "1/8")
+    bars = max(1, min(16, get_int("bars", 4)))
+    density = max(0.15, min(1.0, get_float("density", 0.78)))
+    bass = get_bool("bass", True)
+    bass_color = max(0, min(15, get_int("bass_color", 1)))
+    slide_chance = max(0.0, min(1.0, get_float("slide_chance", 0.0)))
+    seed_mode = get_str("seed_mode", "random")
+
+    if root not in TONICS:
+        root = "C#"
+    if scale not in SCALES:
+        scale = "Natural Minor"
+    if note_len not in NOTE_STEPS:
+        note_len = "1/8"
+
+    return {
+        "root": root,
+        "scale": scale,
+        "note_len": note_len,
+        "bars": bars,
+        "density": density,
+        "bass": bass,
+        "bass_color": bass_color,
+        "slide_chance": slide_chance,
+        "seed_mode": seed_mode,
+    }
+
+
+def build_scale_notes(root_midi, scale_intervals, low, high):
+    result = []
+    for octave in range(-1, 11):
+        base = root_midi + octave * 12
+        for interval in scale_intervals:
+            n = base + interval
+            if low <= n <= high:
+                result.append(n)
+    return result
+
+
+def nearest_index(values, value):
+    best_i = 0
+    best_d = 999
+    for i, n in enumerate(values):
+        d = abs(n - value)
+        if d < best_d:
+            best_d = d
+            best_i = i
+    return best_i
+
+
+def weighted_next_index(current, count):
+    # Mostly stepwise; sometimes make a larger leap for musical variety.
+    r = random.random()
+    if r < 0.68:
+        delta = random.choice([-2, -1, 0, 1, 2])
+    elif r < 0.94:
+        delta = random.choice([-4, -3, 3, 4])
+    else:
+        delta = random.choice([-6, 5, 6])
+    return max(0, min(count - 1, current + delta))
+
+
+def add_note(number, time, length, velocity, color=0, slide=False):
+    note = flp.Note()
+    note.number = int(max(0, min(131, number)))
+    note.time = int(max(0, time))
+    note.length = int(max(1, length))
+    note.velocity = float(max(0.0, min(1.0, velocity)))
+    note.color = int(max(0, min(15, color)))
+    note.slide = bool(slide)
+    flp.score.addNote(note)
+    return note
+
+
+def createDialog():
+    # An empty dialog is intentional. AHK presses Enter after invoking the script.
+    return flp.ScriptDialog("Melody Reroll", "Generating melody...")
+
+
+def apply(form):
+    settings = read_settings()
+    if settings["seed_mode"] != "fixed":
+        random.seed()
+
+    ppq = flp.score.PPQ
+    step_quarters = NOTE_STEPS[settings["note_len"]]
+    step = max(1, int(round(ppq * step_quarters)))
+    bar = ppq * 4
+    total_ticks = bar * settings["bars"]
+
+    root_pc = TONICS[settings["root"]]
+    scale = SCALES[settings["scale"]]
+
+    # Generate a comfortable mid-range melody.
+    melody_low = 54   # F#3-ish
+    melody_high = 78  # F#5-ish
+    scale_notes = build_scale_notes(root_pc, scale, melody_low, melody_high)
+
+    if not scale_notes:
+        return
+
+    flp.score.clearNotes(True)
+
+    # Start/end on stable notes.
+    root_candidates = [n for n in scale_notes if n % 12 == root_pc]
+    tonic = min(root_candidates, key=lambda x: abs(x - 66)) if root_candidates else scale_notes[len(scale_notes) // 2]
+    tonic_index = nearest_index(scale_notes, tonic)
+    current_index = tonic_index
+
+    melody_events = []
+    t = 0
+    while t < total_ticks:
+        # Leave occasional rests, but keep the first beat alive.
+        is_first_step = t == 0
+        play = is_first_step or (random.random() < settings["density"])
+
+        if play:
+            current_index = weighted_next_index(current_index, len(scale_notes))
+            pitch = scale_notes[current_index]
+
+            # Slightly favor chord-like/stable degrees every bar end.
+            steps_in_bar = max(1, int(round(bar / step)))
+            step_number = int((t % bar) / step)
+            last_step = step_number >= steps_in_bar - 1
+            if last_step and random.random() < 0.7:
+                stable = [x for x in scale_notes if x % 12 in ((root_pc) % 12, (root_pc + scale[2 if len(scale) > 2 else 0]) % 12)]
+                if stable:
+                    pitch = min(stable, key=lambda x: abs(x - pitch))
+                    current_index = nearest_index(scale_notes, pitch)
+
+            length = max(1, int(step * random.uniform(0.72, 0.98)))
+            velocity = random.uniform(0.68, 0.92)
+            melody_events.append((pitch, t, length, velocity))
+
+        t += step
+
+    # Force a final tonic note if no event ended near the end.
+    final_time = max(0, total_ticks - step)
+    if not melody_events or melody_events[-1][1] < final_time - step:
+        melody_events.append((tonic, final_time, max(1, int(step * 0.95)), 0.88))
+    else:
+        p, old_t, ln, vel = melody_events[-1]
+        melody_events[-1] = (tonic, old_t, ln, max(vel, 0.82))
+
+    for i, (pitch, time, length, velocity) in enumerate(melody_events):
+        add_note(pitch, time, length, velocity, 0, False)
+
+        # Optional slide marker. Slide notes themselves do not produce sound;
+        # they modify the pitch of notes of the same color on supported instruments.
+        if settings["slide_chance"] > 0 and i > 0 and random.random() < settings["slide_chance"]:
+            slide_target = pitch + random.choice([-2, -1, 1, 2])
+            slide_len = max(1, int(min(length, step * 0.45)))
+            add_note(slide_target, time, slide_len, 0.8, 0, True)
+
+    # Optional simple bass: one sustained root/fifth note per bar.
+    if settings["bass"]:
+        bass_root = root_pc + 36  # around C2-C3 depending on root
+        bass_scale = build_scale_notes(root_pc, scale, bass_root - 2, bass_root + 19)
+        bass_roots = [n for n in bass_scale if n % 12 == root_pc]
+        bass_fifth = [n for n in bass_scale if n % 12 == (root_pc + 7) % 12]
+        root_note = min(bass_roots, key=lambda x: abs(x - bass_root)) if bass_roots else bass_root
+        fifth_note = min(bass_fifth, key=lambda x: abs(x - bass_root - 7)) if bass_fifth else root_note
+
+        for b in range(settings["bars"]):
+            bt = b * bar
+            bn = root_note if b % 2 == 0 or not bass_fifth else fifth_note
+            # Occasionally use root again to avoid a rigid I-V-I-V feel.
+            if random.random() < 0.35:
+                bn = root_note
+            add_note(bn, bt, int(bar * 0.92), random.uniform(0.58, 0.78), settings["bass_color"], False)
