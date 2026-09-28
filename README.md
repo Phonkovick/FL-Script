@@ -88,7 +88,6 @@ For this reason, the default slide chance is **0%**.
 
 ---
 
-# 🇷🇺 Русская версия
 
 # 🎹 FL Melody Generator
 
