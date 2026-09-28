@@ -2,17 +2,17 @@
 
 A small melody generator for **FL Studio Piano Roll**.
 
-It can generate a melody from an empty Piano Roll using a simple **Alt+R** hotkey, with configurable rhythm, key, scale, note density, bass and slide notes.
+Generate a melody from an empty Piano Roll using **Alt+R**, with configurable key, scale, rhythm, note density, bass and slide notes.
 
 ## ✨ Features
 
 * 🎲 Generate a new melody with **Alt+R**
-* ⚙️ Open generator settings with **Alt+Shift+R**
+* ⚙️ Open settings with **Alt+Shift+R**
 * 🎵 Choose key and scale
 * ⏱️ Choose note length: `1/2`, `1/4`, `1/8`, `1/16`, `1/32`
 * 📏 Choose melody length
 * 🎚️ Adjust note density
-* 🔊 Optional bass line
+* 🔊 Enable or disable the bass line
 * 🎨 Choose bass note color
 * ↗️ Optional slide notes
 * 💾 Settings are saved automatically
@@ -23,31 +23,23 @@ It can generate a melody from an empty Piano Roll using a simple **Alt+R** hotke
 
 Copy:
 
-```text
-Melody_Generator.pyscript
-```
+`Melody_Generator.pyscript`
 
 to:
 
-```text
-Documents\Image-Line\FL Studio\Settings\Piano roll scripts
-```
+`Documents\Image-Line\FL Studio\Settings\Piano roll scripts`
 
-### 2. Register the script in FL Studio
+### 2. Run the script in FL Studio
 
-Open **Piano Roll** and run:
+Open **Piano Roll** and go to:
 
-```text
-Tools → Script → Script list → Melody_Generator
-```
+**Tools → Script → Script list → Melody_Generator**
 
 Run the script once.
 
 This makes it the last Piano Roll script used by:
 
-```text
-Ctrl + Alt + Y
-```
+`Ctrl + Alt + Y`
 
 ### 3. Install AutoHotkey
 
@@ -55,72 +47,56 @@ Install **AutoHotkey v2**.
 
 Then run:
 
-```text
-Melody_Reroll_AltR.ahk
-```
+`Melody_Reroll_AltR.ahk`
 
-### 4. Use the generator
+### 4. Generate melodies
 
 Inside FL Studio:
 
-```text
-Alt + R
-```
+**Alt + R** → Generate a new melody
 
-Generate a new melody.
+**Alt + Shift + R** → Open settings
 
-```text
-Alt + Shift + R
-```
+## ⚙️ Default Settings
 
-Open generator settings.
+* **Key:** C#
+* **Scale:** Natural Minor
+* **Note length:** 1/8
+* **Length:** 4 bars
+* **Density:** 78%
+* **Bass:** ON
+* **Bass color:** 2
+* **Slide chance:** 0%
 
-## ⚙️ Default settings
+## 💾 Settings Location
 
-```text
-Key: C#
-Scale: Natural Minor
-Note length: 1/8
-Length: 4 bars
-Density: 78%
-Bass: ON
-Bass color: 2
-Slide chance: 0%
-```
+Settings are saved to:
 
-## 💾 Settings location
+`Documents\Image-Line\FL Studio\Settings\MelodyReroll.ini`
 
-The generator stores its settings in:
-
-```text
-Documents\Image-Line\FL Studio\Settings\MelodyReroll.ini
-```
-
-## 🎹 How it works
+## 🎹 How It Works
 
 The generator can create a melody even when the Piano Roll is completely empty.
 
-Each press of **Alt+R** generates a new variation using the current settings.
+Each press of **Alt+R** generates a new melody using the current settings.
 
-The generator creates MIDI notes directly through the FL Studio Piano Roll scripting API.
+The melody is created directly through the **FL Studio Piano Roll scripting API**.
 
-## ↗️ Slide notes
+## ↗️ Slide Notes
 
 Slide notes are supported by the FL Studio Piano Roll API.
 
-They are not normal sounding notes. Instead, they control pitch transitions on instruments that support FL Studio slide events.
+They are not normal sounding notes. Instead, they control pitch transitions on instruments that support **FL Studio slide events**.
 
-For that reason, the default slide chance is:
+For this reason, the default slide chance is **0%**.
 
-```text
-0%
-```
+---
 
 # 🎹 FL Melody Generator
 
 Небольшой генератор мелодий для **Piano Roll в FL Studio**.
 
-Он умеет создавать мелодию прямо из пустого Piano Roll по горячей клавише **Alt+R**.
+Он позволяет создавать мелодию прямо из пустого Piano Roll с помощью **Alt+R**.
 
 ## ✨ Возможности
 
@@ -141,98 +117,74 @@ For that reason, the default slide chance is:
 
 Скопируйте:
 
-```text
-Melody_Generator.pyscript
-```
+`Melody_Generator.pyscript`
 
 в:
 
-```text
-Documents\Image-Line\FL Studio\Settings\Piano roll scripts
-```
+`Documents\Image-Line\FL Studio\Settings\Piano roll scripts`
 
 ### 2. Запустите скрипт в FL Studio
 
-Откройте **Piano Roll** и выберите:
+Откройте **Piano Roll** и перейдите:
 
-```text
-Tools → Script → Script list → Melody_Generator
-```
+**Tools → Script → Script list → Melody_Generator**
 
 Запустите скрипт один раз.
 
 После этого он становится последним использованным Piano Roll Script и может запускаться через:
 
-```text
-Ctrl + Alt + Y
-```
+`Ctrl + Alt + Y`
 
 ### 3. Установите AutoHotkey
 
 Необходим **AutoHotkey v2**.
 
-Запустите:
+После установки запустите:
 
-```text
-Melody_Reroll_AltR.ahk
-```
+`Melody_Reroll_AltR.ahk`
 
 ### 4. Использование
 
 В FL Studio:
 
-```text
-Alt + R
-```
+**Alt + R** → создать новую мелодию
 
-Создать новую мелодию.
-
-```text
-Alt + Shift + R
-```
-
-Открыть настройки.
+**Alt + Shift + R** → открыть настройки
 
 ## ⚙️ Настройки по умолчанию
 
-```text
-Тональность: C#
-Гамма: Natural Minor
-Длительность нот: 1/8
-Длина: 4 такта
-Плотность: 78%
-Бас: включён
-Цвет баса: 2
-Вероятность slide: 0%
-```
+* **Тональность:** C#
+* **Гамма:** Natural Minor
+* **Длительность нот:** 1/8
+* **Длина:** 4 такта
+* **Плотность:** 78%
+* **Бас:** включён
+* **Цвет баса:** 2
+* **Вероятность slide:** 0%
 
 ## 💾 Где сохраняются настройки
 
 Настройки сохраняются в:
 
-```text
-Documents\Image-Line\FL Studio\Settings\MelodyReroll.ini
-```
+`Documents\Image-Line\FL Studio\Settings\MelodyReroll.ini`
 
 ## 🎹 Как это работает
 
 Генератор может создать мелодию даже в полностью пустом Piano Roll.
 
-Каждое нажатие **Alt+R** создаёт новый вариант мелодии на основе текущих настроек.
+Каждое нажатие **Alt+R** создаёт новую мелодию на основе текущих настроек.
 
-Мелодия создаётся непосредственно через Piano Roll scripting API FL Studio.
+Мелодия создаётся непосредственно через **Piano Roll scripting API FL Studio**.
 
 ## ↗️ Slide-ноты
 
 Slide-ноты поддерживаются API Piano Roll в FL Studio.
 
-Они не являются обычными звучащими нотами — они управляют переходом высоты тона у инструментов, поддерживающих FL Studio slide events.
+Они не являются обычными звучащими нотами. Вместо этого они управляют переходом высоты тона у инструментов, поддерживающих **FL Studio slide events**.
 
-Поэтому по умолчанию вероятность их появления установлена на:
+Поэтому по умолчанию вероятность их появления установлена на **0%**.
 
-```text
-0%
-```
+---
 
 ## 📄 License
 
