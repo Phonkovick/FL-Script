@@ -1,5 +1,7 @@
 # 🎹 FL Melody Generator
 
+EN
+
 A small melody generator for **FL Studio Piano Roll**.
 
 Generate a melody from an empty Piano Roll using **Alt+R**, with configurable key, scale, rhythm, note density, bass and slide notes.
@@ -88,8 +90,9 @@ For this reason, the default slide chance is **0%**.
 
 ---
 
-
 # 🎹 FL Melody Generator
+
+RU
 
 Небольшой генератор мелодий для **Piano Roll в FL Studio**.
 
